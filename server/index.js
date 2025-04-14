@@ -1,6 +1,7 @@
 import express from "express";
 import userRoutes from "./routes/user.js";
 import tokenRoutes from "./routes/token.js";
+import authRoutes from "./routes/auth.js"
 import supabase from "./utils/supabase.js";
 import nodemailer from 'nodemailer'
 
@@ -12,30 +13,30 @@ app.use(express.json())
 
 app.use('/user', userRoutes);
 app.use('/token', tokenRoutes);
+app.use('/auth', authRoutes)
 
 app.get("/", (req, res) => {
-    res.send("Server is now live");
+    return res.send("Server is now live");
 });
 
-app.get("/:email_id", async (req, res) => {
+app.get("/sendmail/:email_id", async (req, res) => {
     const { data, error } = await supabase
         .from('users')
-        .select()
+        .select('email_id, access_token')
         .eq('email_id', req.params.email_id)
+        .maybeSingle()
 
-        
-    console.log(data)
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             type: "OAuth2",
-            user: data[0].email_id,
-            accessToken: data[0].password,
+            user: data.email_id,
+            accessToken: data.access_token,
         },
     });
 
     transporter.sendMail({
-        from: data[0].email_id,
+        from: data.email_id,
         to: "deepeshgupta8843@gmail.com",
         subject: "Message",
         text: "I hope this message gets through!",

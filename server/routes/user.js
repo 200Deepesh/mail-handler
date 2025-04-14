@@ -28,7 +28,7 @@ router.patch("/", async (req, res) => {
     console.log(user)
     let { error } = await supabase
         .from('users')
-        .update({ password: user.password })
+        .update({ password: null })
         .eq("email_id", user.email_id)
 
     if (error) throw new Error(error.message)
