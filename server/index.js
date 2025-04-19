@@ -32,16 +32,9 @@ app.get("/clients", async (req, res) => {
 app.get("/sendmail/:email_id", async (req, res) => {
     const user_id = req.params.email_id
     const reciver_id = 'deepeshgupta8843@gmail.com'
-    const client = await supabase
-        .from('clients')
-        .select()
-        .eq('client_id', reciver_id)
-        .maybeSingle
-
-    const body = client.client_name? firstMail.replace('{name}', client.client_name): firstMail.replace('{name}', '')
 
     // console.log(user_id)
-    await sendMail(user_id, reciver_id, subject, body)
+    await sendMail(user_id, reciver_id, subject, firstMail)
     return res.send('mail is sent')
 })
 
