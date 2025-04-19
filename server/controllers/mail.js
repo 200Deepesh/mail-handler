@@ -24,9 +24,17 @@ export const sendMail = async (user_id, reciver_id, subject, body) => {
             refreshToken: user.refresh_token,
             accessToken: user.access_token,
         },
-    }, (err, info) => {
-        if(err) throw new Error(err)
-        console.log(info);
+    }, async (err, info) => {
+        if (err) throw new Error(err)
+
+        const { error } = await supabase
+            .from('clients')
+            .update({ 'message_id': info.messageId })
+            .eq('client_id', reciver_id)
+            .eq('user_id', user_id)
+
+        if(error) throw new Error(error.message)
+
     });
 
 }

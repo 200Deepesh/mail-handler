@@ -4,6 +4,7 @@ import tokenRoutes from "./routes/token.js";
 import authRoutes from "./routes/auth.js"
 import { sendMail } from "./controllers/mail.js";
 import { subject, firstMail } from "./emailTemplate.js";
+import supabase from "./utils/supabase.js";
 
 const app = express();
 const PORT = 8000;
@@ -19,13 +20,29 @@ app.get("/", (req, res) => {
     return res.send("Server is now live");
 });
 
+app.get("/clients", async (req, res) => {
+    let { data, error } = await supabase
+        .from('clients')
+        .select()
+    if (error) throw new Error(error.message)
+
+    return res.json(data);
+})
+
 app.get("/sendmail/:email_id", async (req, res) => {
     const user_id = req.params.email_id
-    const user_name = req.query.name
-    const body = user_name? firstMail.replace('{name}', user_name): firstMail.replace('{name}', '')
+    const reciver_id = 'deepeshgupta8843@gmail.com'
+    const client = await supabase
+        .from('clients')
+        .select()
+        .eq('client_id', reciver_id)
+        .maybeSingle
+
+    const body = client.client_name? firstMail.replace('{name}', client.client_name): firstMail.replace('{name}', '')
 
     // console.log(user_id)
-    await sendMail(user_id, 'deepeshgupta8843@gmail.com', subject, body)
+    await sendMail(user_id, reciver_id, subject, body)
+    return res.send('mail is sent')
 })
 
 app.listen(PORT, () => {
