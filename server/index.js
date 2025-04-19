@@ -2,8 +2,8 @@ import express from "express";
 import userRoutes from "./routes/user.js";
 import tokenRoutes from "./routes/token.js";
 import authRoutes from "./routes/auth.js"
-import supabase from "./utils/supabase.js";
-import nodemailer from 'nodemailer'
+import { sendMail } from "./controllers/mail.js";
+import { subject, firstMail } from "./emailTemplate.js";
 
 const app = express();
 const PORT = 8000;
@@ -20,34 +20,12 @@ app.get("/", (req, res) => {
 });
 
 app.get("/sendmail/:email_id", async (req, res) => {
-    const { data, error } = await supabase
-        .from('users')
-        .select('email_id, access_token')
-        .eq('email_id', req.params.email_id)
-        .maybeSingle()
+    const user_id = req.params.email_id
+    const user_name = req.query.name
+    const body = user_name? firstMail.replace('{name}', user_name): firstMail.replace('{name}', '')
 
-    let transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            type: "OAuth2",
-            user: data.email_id,
-            accessToken: data.access_token,
-        },
-    });
-
-    transporter.sendMail({
-        from: data.email_id,
-        to: "deepeshgupta8843@gmail.com",
-        subject: "Message",
-        text: "I hope this message gets through!",
-    }, (error, info)=>{
-        if (error) {
-            console.log(error);
-          } else {
-            console.log('Email sent: ' + info.messageId);
-          }
-    })
-    return res.send('check you inbox');
+    // console.log(user_id)
+    await sendMail(user_id, 'deepeshgupta8843@gmail.com', subject, body)
 })
 
 app.listen(PORT, () => {

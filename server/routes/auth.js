@@ -7,7 +7,7 @@ const router = express.Router()
 router.post('/login', async (req, res) => {
     const { email_id: userID, password } = req.body;
 
-    const { data, error } = await supabase
+    const { data: user, error } = await supabase
         .from('users')
         .select('email_id, refresh_token')
         .eq('email_id', userID)
@@ -15,9 +15,9 @@ router.post('/login', async (req, res) => {
 
     if(error) throw new Error(error.message)
 
-    if(!data) return res.redirect('/auth/signup')
+    if(!user) return res.redirect('/auth/signup')
     
-    if(!data.refresh_token) {
+    if(!user.refresh_token) {
         const url = await generateAuthUrl()
         // return res.send(url)
         return res.redirect(url);

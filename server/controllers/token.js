@@ -12,7 +12,7 @@ export const generateAuthUrl = async () => {
 }
 
 export const generateAccessToken = async (user_id) => {
-    const { data, error: findError } = await supabase
+    const { data: user, error: findError } = await supabase
         .from('users')
         .select('email_id, refresh_token')
         .eq('email_id', user_id)
@@ -20,7 +20,7 @@ export const generateAccessToken = async (user_id) => {
 
     if (findError) throw new Error(findError.message)
 
-    if (!data) throw new Error("user is not registered")
+    if (!user) throw new Error("user is not registered")
 
     const res = await fetch('https://oauth2.googleapis.com/token', {
         method: "POST",
@@ -28,7 +28,7 @@ export const generateAccessToken = async (user_id) => {
         body: JSON.stringify({
             client_id: process.env.CLIENT_ID,
             client_secret: process.env.CLIENT_SECRET,
-            refresh_token: data.refresh_token,
+            refresh_token: user.refresh_token,
             grant_type: 'refresh_token'
         })
     })
